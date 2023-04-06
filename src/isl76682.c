@@ -27,12 +27,11 @@ float lux_fac;              /**< factor to calculate actual lux value */
 
 #include "isl76682.h"
 #include "isl76682-internal.h"
-#include "i2c.h"
 
 #define DEV_RANGE    ISL76682_RANGE_16K
 #define DEV_MODE     ISL76682_MODE_AMBIENT
 
-int isl76682_init(uint16_t addr)
+int isl76682_init(I2C_HandleTypeDef *i2c, uint16_t addr)
 {
 	int res;
 	uint8_t config;
@@ -42,7 +41,7 @@ int isl76682_init(uint16_t addr)
 	lux_fac = (float)((1 << (10 + (2 * DEV_RANGE))) - 1) / 0xffff;
 
 	/* acquire access to device */
-	if (HAL_I2C_IsDeviceReady(&hi2c4, addr, 3, 1000) != HAL_OK) // shift karena ada start bit
+	if (HAL_I2C_IsDeviceReady(i2c, addr, 3, 1000) != HAL_OK) // shift karena ada start bit
 	{
 	  /* Return false */
 	  return -1;
@@ -52,7 +51,7 @@ int isl76682_init(uint16_t addr)
 
 	config = (ISL76682_CMD_EN | ISL76682_CMD_MODE |
 	    ISL76682_RES_INT_16 | DEV_RANGE | (DEV_MODE << 5));
-	res = HAL_I2C_Mem_Write(&hi2c4, addr, ISL76682_REG_CMD,
+	res = HAL_I2C_Mem_Write(i2c, addr, ISL76682_REG_CMD,
 	                        I2C_MEMADD_SIZE_8BIT, &config, sizeof(config), 1000);
 	if (res < 0)
 	{
@@ -62,16 +61,16 @@ int isl76682_init(uint16_t addr)
 	return 0;
 }
 
-int isl76682_read(const uint16_t addr)
+int isl76682_read(I2C_HandleTypeDef *i2c, const uint16_t addr)
 {
   uint8_t low, high;
   uint16_t res;
   int ret;
 
   /* read lighting value */
-  ret = HAL_I2C_Mem_Read(&hi2c4, addr, ISL76682_REG_LDATA,
+  ret = HAL_I2C_Mem_Read(i2c, addr, ISL76682_REG_LDATA,
                          I2C_MEMADD_SIZE_8BIT, &low, 1, 1000);
-  ret += HAL_I2C_Mem_Read(&hi2c4, addr, ISL76682_REG_HDATA,
+  ret += HAL_I2C_Mem_Read(i2c, addr, ISL76682_REG_HDATA,
                           I2C_MEMADD_SIZE_8BIT, &high, 1, 1000);
   if (ret != 0) //check error
   {

@@ -29,7 +29,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+#include <i2c.h>
 /**
  * @defgroup drivers_isl76682_config     ISL76682 light sensor driver compile configuration
  * @ingroup config_drivers_sensors
@@ -84,7 +84,7 @@ typedef struct {
  * @return              0 on success
  * @return              -1 on error
  */
-int isl76682_init(uint16_t addr);
+int isl76682_init(I2C_HandleTypeDef *i2c, uint16_t addr);
 
 /**
  * @brief   Read a lighting value from the sensor, the result is given in lux
@@ -94,7 +94,7 @@ int isl76682_init(uint16_t addr);
  * @return              the measured brightness in lux
  * @return              -1 on error
  */
-int isl76682_read(const uint16_t addr);
+int isl76682_read(I2C_HandleTypeDef *i2c, const uint16_t addr);
 
 #ifdef __cplusplus
 }
